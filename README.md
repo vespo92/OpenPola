@@ -19,10 +19,14 @@ OpenPola/
 │   ├── cloudbox-api.md          # Complete reverse-engineered web API
 │   ├── cloudbox-architecture.md # System internals and infrastructure
 │   ├── xp80-device-info.md      # XP80 controller specs and findings
-│   └── rs485-protocol.md        # RS485 protocol analysis (WIP)
+│   └── rs485-protocol.md        # RS485 protocol analysis + decode plan
 ├── cloudbox/
 │   ├── client.py                # Python client for CloudBox web API
-│   └── scraper.py               # Automated data scraper
+│   ├── scraper.py               # Automated status scraper (JSONL output)
+│   └── mqtt_bridge.py           # CloudBox → MQTT bridge (what POLA promised)
+├── tools/
+│   ├── sniffer.py               # RS485 passive bus sniffer
+│   └── analyze_capture.py       # Capture file analyzer (frame stats, checksums)
 └── README.md
 ```
 
@@ -80,6 +84,26 @@ Despite reading the XP80 every ~37 seconds over RS485:
 | Serial | 7881 |
 | RS485 Node | 1 |
 | Protocol | Proprietary POLA (NOT Modbus, NOT Siemens XNet) |
+
+## RS485 Protocol Decode (Help Wanted!)
+
+The CloudBox sends **~126 RS485 transactions every 15 seconds** to the XP80.
+We need to sniff this traffic to decode the proprietary POLA protocol.
+
+See [docs/rs485-protocol.md](docs/rs485-protocol.md) for the full decode plan.
+
+**What you need to help:**
+- Any POLA controller (XP80, XP40, HP, LP)
+- A USB-RS485 adapter ($5-15)
+- Python 3 + pyserial
+
+```bash
+# Sniff the bus (connect adapter RX-only to the RS485 bus)
+python3 tools/sniffer.py --port /dev/ttyUSB0 --baud 9600 --analyze --output capture.bin
+
+# Analyze the capture
+python3 tools/analyze_capture.py capture.bin
+```
 
 ## Contributing
 
